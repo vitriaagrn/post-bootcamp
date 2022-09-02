@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: registry.nutanix.com:5000/10.42.29.110:5000/vitriagrn/post-bootcamp
+        image: registry.nutanix.com:5000/vitriagrn/post-bootcamp
         ports:
         - containerPort: 80
       imagePullSecrets:
