@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post-bootcamp
+  labels:
+    app: nginx
+    env: development
+    tier: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+      env: development
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: nginx
+        env: development
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: registry.nutanix.com:5000/10.42.29.110:5000/vitriagrn/post-bootcamp
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+      - name: regcred

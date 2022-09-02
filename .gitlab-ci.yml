@@ -1,0 +1,57 @@
+stages:
+  - test
+  - build
+  - deploy
+print:
+  image: ubuntu
+  script: echo "saya sedang mengerjakan post-bootcamp"
+
+variables:
+  CI_REGISTRY_USER: "admin"
+  CI_REGISTRY_PASSWORD: "nutanix/4u"
+  CI_DEPENDENCY_PROXY_SERVER: "10.42.29.110:5000"
+
+build:docker:
+  stage: build
+  image: docker:stable
+  services:
+    - name: docker:18.09-dind
+      entrypoint: ["dockerd-entrypoint.sh"]
+      command: ["--insecure-registry=10.42.29.110:5000"]
+      alias: dockerd
+  variables:
+    DOCKER_HOST: tcp://dockerd:2375
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_DEPENDENCY_PROXY_SERVER
+  script:
+    - docker build -f Dockerfile -t $CI_DEPENDENCY_PROXY_SERVER/vitriagrn/post-bootcamp:latest .
+    - docker push $CI_DEPENDENCY_PROXY_SERVER/vitriagrn/post-bootcamp:latest
+
+deploy:kubernetes:
+  stage: deploy
+  environment:
+    name: review
+  # only:
+  #   - /-release/
+  variables: 
+    KUBECTL_VERSION: "1.21.1-release"
+    DOCKER_REGCRED: "regcred"
+  image:
+    name: vitriagrn/k8s-kubectl-helm:${KUBECTL_VERSION}
+  before_script:
+    - echo "set kubernetes namespaces to $KUBE_NAMESPACE"
+    - kubectl config set-context --current --namespace="$KUBE_NAMESPACE"
+    - mkdir -p .docker/ && cat $DOCKER_CONF_JSON > .docker/config.json
+    - export NEXUS_REGCRED_IS_EXIST=$(kubectl get secret $DOCKER_REGCRED -n $KUBE_NAMESPACE -o json --ignore-not-found=true | grep $DOCKER_REGCRED | wc -l)
+    - echo "kubernetes registry is exist => ${NEXUS_REGCRED_IS_EXIST}"
+    - |
+      if [ ${NEXUS_REGCRED_IS_EXIST} -eq 0 ]; 
+        then kubectl create secret generic $DOCKER_REGCRED --from-file=".dockerconfigjson=.docker/config.json" --type="kubernetes.io/dockerconfigjson" --namespace=$KUBE_NAMESPACE
+        else echo "Docker Registry Credential was created";
+      fi
+  script:
+    - kubectl apply -n $KUBE_NAMESPACE -f webapp/kubernetes/
+  after_script:
+    - kubectl rollout restart deploy/post-bootcamp -n $KUBE_NAMESPACE
