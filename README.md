@@ -1,50 +1,34 @@
-# Pre-Test Bootcamp fullstack developer
+# Post Bootcamp Review
+
+Supaya temen-temen memahami apa yang telah pemateri sampaikan, silahkan kerjakan task berikut
 
 ## Task 1 (Virtualization)
 
-- Buatlah sebuah VM dengan kententuan
+- Buatlah sebuah VM di Nutanix Cluster yang telah di berikan dengan kententuan
   - username: `<github_user>` contoh `dimasm93`
   - hostname: `<email_without_at>` contoh `dimas.tabeldata.com`
   - OS: `ubuntu-20.04` atau `centos-7`
 - Install webserver `nginx`
-  - Configurasi reverse-proxy ke alamat `https://jsonplaceholder.typicode.com/todos/1` dengan url `/todo`
-  - Lakukan curl ke alamat tersebut contoh `<ip-vm-host>:<ip-vm-port-nginx>/todo` (kirimkan hasil screenshotnya simpan dalam folder `screenshot` dengan nama `task1.png`)
+  - Deploy aplikasi dalam folder `webapp` ke webserver nginx
 
 ## Task 2 (Container)
 
-Jika saya memiliki architecture seperti berikut:
+Berdasarkan task no 1, buatlah versi containernya: 
 
-![container-apps](docs/images/01-container.png)
-
-Dimana berikut adalah configurasi docker image:
-
-1. Backend container
-  - image: `dimmaryanto93/udemy-springboot-app:latest`
-  - port: `8080`
-  - env: 
-    - `DATABASE_HOST`: `<ip-domain-db>`
-    - `DATABASE_PORT`: `5432` 
-    - `DATABASE_NAME`: `<db-name>`
-    - `DATABASE_PASSWORD`: `<db-password>`
-  need:
-    - Database PostgreSQL v14.2
-2. Frontend container
-  - image: `dimmaryanto93/udemy-angular-app:latest`
-  - port: `80`
-  - env:
-    - `APPLICATION_PORT`: `14.15-alpine`
-    - `NGINX_ROOT_DOCUMENT`: `/var/www/html`
-    - `BACKEND_HOST`: `<ip-backend-apps>`
-    - `BACKEND_PORT`: `<port-backend-apps>`
-    - `BACKEND_CONTEXT_PATH`: `/`
-  - need:
-    - Backend container
-
-Silahkan buat docker-compose filenya, kemudian simpan dalam folder `tasks` dengan nama `docker-compose.yaml`
+1. build docker image dengan nama `<username>/post-bootcamp`
+2. tag docker image yang telah dibuat dengan nama baru `10.42.29.110:5000/<username>/post-bootcamp`
+3. Jalankan containernya berdasarkan docker image tersebut.
+4. Setelah ok, semuanya jalan. coba push ke docker registry di nutanix cluster
+5. Kemudian check di registry dengan akses browser `10.42.29.110:5000/v2/_catalog`
+6. Buat docker-compose filenya, kemudian simpan dalam folder `tasks` dengan nama `docker-compose.yaml`
 
 ## Task 3 (Orchestration Container System)
 
-1. Apa yang anda ketahui tentang Orchestration Container System?
-2. Kenapa Orchestration Container System seperti Kubernetes sangat popular (menurut anda)?
+1. Buatlah kubernetes workload resources deployment untuk container tersebut
+2. Expose deployment tersebut menggunakan service dengan type NodePort
 
-Cara pengerjaan, silahkan update file ini tulis jawabanya di bawah ini
+## Task 4 (CI/CD)
+
+1. Berdasarkan task 2, 3 coba buatlah automationnya menggunakan `gitlab-ci.yml`
+2. Untuk build, push ke docker registry
+3. Untuk deploy ke kubernetes cluster
